@@ -6,13 +6,19 @@ import 'react-toastify/dist/ReactToastify.css';
 import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Features from './pages/Features';
+import Pricing from './pages/Pricing';
+import Contact from './pages/Contact';
+import Blog from './pages/Blog';
+import BlogPost from './pages/BlogPost';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminProfile from './pages/admin/AdminProfile';
+import AdminAttendance from './pages/admin/AdminAttendance';
 import Employees from './pages/Employees';
-import Departments from './pages/Department';
-import Performance from './pages/performance';
+import Departments from './pages/Departments';
+import Performance from './pages/Performance';
 import Reports from './pages/Reports';
 // import Setting from './pages/Setting';
 
@@ -37,6 +43,11 @@ function App() {
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<LandingPage />} />
+        <Route path="/features" element={<Features />} />
+        <Route path="/pricing" element={<Pricing />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/blog/:id" element={<BlogPost />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
@@ -46,6 +57,7 @@ function App() {
           <Route path="/admin/profile" element={<AdminProfile />} />
           <Route path="/admin/employees" element={<Employees />} />
           <Route path="/admin/departments" element={<Departments />} />
+          <Route path="/admin/attendance" element={<AdminAttendance />} />
           <Route path="/admin/performance" element={<Performance />} />
           <Route path="/admin/reports" element={<Reports />} />
           {/* <Route path="/admin/settings" element={<Setting />} /> */}

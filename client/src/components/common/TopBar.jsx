@@ -44,7 +44,6 @@ const TopBar = () => {
   // Determine links based on role
   const dashboardLink = userRole === 'admin' ? '/admin/dashboard' : '/employee/dashboard';
   const profileLink = userRole === 'admin' ? '/admin/profile' : '/employee/profile';
-  const settingsLink = userRole === 'admin' ? '/admin/settings' : '/employee/settings';
 
   // Navigation items based on role
   const navItems = userRole === 'admin'
@@ -71,8 +70,8 @@ const TopBar = () => {
           <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center">
               <Link to={dashboardLink} className="text-xl font-bold text-gray-800">
-                <span className="hidden md:inline">ERM System</span>
-                <span className="md:hidden">ERM</span>
+                {/* <span className="hidden md:inline">ERM System</span>
+                <span className="md:hidden">ERM</span> */}
               </Link>
               <span className="ml-2 px-2 py-1 text-xs font-medium bg-indigo-100 text-indigo-800 rounded-md capitalize">
                 {userRole}
@@ -124,27 +123,8 @@ const TopBar = () => {
           <div className="flex items-center">
             <div className="relative">
               <div className="mr-3">
-                <button
-                  type="button"
-                  className="relative rounded-full bg-gray-100 p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  <span className="sr-only">View notifications</span>
-                  <svg
-                    className="h-6 w-6"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                    />
-                  </svg>
-                </button>
+               
+                 
               </div>
               <button
                 type="button"
@@ -182,13 +162,7 @@ const TopBar = () => {
                   >
                     Your Profile
                   </Link>
-                  <Link
-                    to={settingsLink}
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    role="menuitem"
-                  >
-                    Settings
-                  </Link>
+                 
                   <button
                     onClick={handleLogout}
                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"

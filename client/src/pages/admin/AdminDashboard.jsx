@@ -10,7 +10,7 @@ const AdminDashboard = () => {
     onLeave: 13,
     newHires: 8
   };
-  
+
   const departmentData = [
     { name: 'Engineering', count: 78, percentage: 32 },
     { name: 'Marketing', count: 45, percentage: 18 },
@@ -19,7 +19,7 @@ const AdminDashboard = () => {
     { name: 'Finance', count: 25, percentage: 10 },
     { name: 'Operations', count: 20, percentage: 9 }
   ];
-  
+
   const recentActivities = [
     { id: 1, user: 'Sarah Johnson', action: 'updated their profile', time: '2 hours ago' },
     { id: 2, user: 'Mark Wilson', action: 'requested time off', time: '3 hours ago' },
@@ -41,8 +41,16 @@ const AdminDashboard = () => {
         <p className="mt-1 text-sm text-gray-600">
           Welcome back, {user?.name || 'Admin'}! Here's what's happening in your organization.
         </p>
+        <div className="mt-4 flex space-x-4">
+          <a href="/admin/attendance" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+            Manage Attendance
+          </a>
+          <a href="/admin/employees" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+            View Employees
+          </a>
+        </div>
       </div>
-      
+
       <div className="px-4 mx-auto max-w-7xl sm:px-6 md:px-8">
         {/* Stats cards */}
         <div className="grid grid-cols-1 gap-5 mt-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -148,8 +156,8 @@ const AdminDashboard = () => {
                       </div>
                       <div className="flex-shrink-0 ml-4">
                         <div className="w-full bg-gray-200 rounded-full h-2.5">
-                          <div 
-                            className="bg-indigo-600 h-2.5 rounded-full" 
+                          <div
+                            className="bg-indigo-600 h-2.5 rounded-full"
                             style={{ width: `${dept.percentage}%` }}
                           ></div>
                         </div>

@@ -177,15 +177,13 @@ const LandingPage = () => {
               <ul className="space-y-2">
                 <li><Link to="/features" className="text-gray-400 hover:text-white">Features</Link></li>
                 <li><Link to="/pricing" className="text-gray-400 hover:text-white">Pricing</Link></li>
-                <li><Link to="/integrations" className="text-gray-400 hover:text-white">Integrations</Link></li>
               </ul>
             </div>
             <div>
               <h3 className="text-lg font-semibold mb-4">Resources</h3>
               <ul className="space-y-2">
                 <li><Link to="/blog" className="text-gray-400 hover:text-white">Blog</Link></li>
-                <li><Link to="/help" className="text-gray-400 hover:text-white">Help Center</Link></li>
-                <li><Link to="/guides" className="text-gray-400 hover:text-white">Guides</Link></li>
+            
               </ul>
             </div>
             <div>
