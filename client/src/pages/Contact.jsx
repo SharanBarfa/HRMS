@@ -75,7 +75,6 @@ const Contact = () => {
             <div className="flex items-center space-x-4">
               <Link to="/" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-500">Home</Link>
               <Link to="/features" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-500">Features</Link>
-              <Link to="/pricing" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-500">Pricing</Link>
               <Link to="/contact" className="px-3 py-2 rounded-md text-sm font-medium bg-indigo-800">Contact</Link>
               <Link to="/login" className="px-4 py-2 rounded-md text-sm font-medium bg-white text-indigo-600 hover:bg-gray-100">
                 Login
@@ -290,7 +289,6 @@ const Contact = () => {
               <h3 className="text-lg font-semibold mb-4">Product</h3>
               <ul className="space-y-2">
                 <li><Link to="/features" className="text-gray-400 hover:text-white">Features</Link></li>
-                <li><Link to="/pricing" className="text-gray-400 hover:text-white">Pricing</Link></li>
               </ul>
             </div>
             <div>

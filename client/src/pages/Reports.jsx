@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BarChart, PieChart, Download, Filter, Calendar, ChevronDown, FileText, Users, DollarSign, Clock } from 'lucide-react';
-import AdminLayoutNoSidebar from '../components/layout/AdminLayoutNoSidebar';
 
 const Reports = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState('attendance');
   const [dateRange, setDateRange] = useState('last-30');
   const [department, setDepartment] = useState('all');
@@ -94,7 +92,6 @@ const Reports = () => {
 
 
   return (
-    <AdminLayoutNoSidebar>
       <div className="py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-8">
@@ -298,7 +295,6 @@ const Reports = () => {
           </div>
         </div>
       </div>
-    </AdminLayoutNoSidebar>
   );
 };
 

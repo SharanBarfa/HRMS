@@ -1,169 +1,96 @@
-// Mock backend service for development
-// We'll use a simpler approach without MSW for now
-
-// Simple base64 encoding for token (not secure, just for demo)
-const encodeToken = (payload) => {
-  return btoa(JSON.stringify(payload));
-};
-
-// Simple token verification (not secure, just for demo)
-const verifyToken = (token) => {
-  try {
-    return JSON.parse(atob(token));
-  } catch (e) {
-    throw new Error('Invalid token');
-  }
-};
-
-// Mock user data
-const users = [
-  {
-    id: 1,
-    name: 'Admin User',
-    email: 'admin@example.com',
-    password: 'admin123',
-    role: 'admin',
-    department: 'Management',
-    position: 'System Administrator',
-    joinDate: '2023-01-15',
-    phone: '(555) 123-4567'
-  },
-  {
-    id: 2,
-    name: 'John Employee',
-    email: 'employee@example.com',
-    password: 'employee123',
-    role: 'employee',
-    department: 'Engineering',
-    position: 'Software Developer',
-    joinDate: '2023-03-20',
-    phone: '(555) 987-6543'
-  }
-];
-
-// Generate token
-const generateToken = (user) => {
-  const payload = {
-    id: user.id,
-    email: user.email,
-    role: user.role,
-    exp: Math.floor(Date.now() / 1000) + (60 * 60) // 1 hour expiration
-  };
-
-  return encodeToken(payload);
-};
+import axios from "axios";
 
 // Mock API functions
 const mockAPI = {
   // Login endpoint
   login: async (email, password) => {
-    const user = users.find(u => u.email === email && u.password === password);
-
-    if (!user) {
-      throw new Error('Invalid email or password');
+    if (!email || !password) {
+      throw new Error("Email and password are required");
     }
 
-    const token = generateToken(user);
-    const { password: _, ...userWithoutPassword } = user;
+    const user = await axios.post(`/api/users/login`, { email, password });
 
     return {
       success: true,
       data: {
-        ...userWithoutPassword,
-        token
-      }
+        user: user.data.data,
+        token: user.data.data.token,
+      },
     };
   },
 
   // Register endpoint
   register: async (userData) => {
-    const { email, password, name, role = 'employee' } = userData;
-
-    if (users.some(u => u.email === email)) {
-      throw new Error('Email already in use');
+    const { email, password, name, role = "employee" } = userData;
+    if (!email || !password || !name) {
+      throw new Error("Email, password, and name are required");
     }
 
-    const newUser = {
-      id: users.length + 1,
-      name,
-      email,
-      password,
-      role,
-      department: 'Unassigned',
-      position: 'New Employee',
-      joinDate: new Date().toISOString().split('T')[0]
-    };
-
-    users.push(newUser);
-
-    const token = generateToken(newUser);
-    const { password: _, ...userWithoutPassword } = newUser;
-
+    const user = await axios.post("/api/users/", userData, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
     return {
       success: true,
       data: {
-        ...userWithoutPassword,
-        token
-      }
+        user: user.data.data,
+        token: user.data.data.token,
+      },
     };
   },
 
   // Get user profile
   getProfile: async (token) => {
-    if (!token) {
-      throw new Error('Unauthorized');
-    }
-
+   
     try {
-      const decoded = verifyToken(token);
-      const user = users.find(u => u.id === decoded.id);
+      const res = await axios.get(`/api/users/profile`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-      if (!user) {
-        throw new Error('User not found');
-      }
-
-      const { password: _, ...userWithoutPassword } = user;
-
+      console.log(res.data);
       return {
         success: true,
-        data: userWithoutPassword
+        data: res.data.data,
       };
     } catch (error) {
-      throw new Error('Invalid token');
+      throw new Error("Invalid token");
     }
   },
 
   // Update user profile
   updateProfile: async (token, userData) => {
     if (!token) {
-      throw new Error('Unauthorized');
+      throw new Error("Unauthorized");
     }
 
     try {
       const decoded = verifyToken(token);
-      const userIndex = users.findIndex(u => u.id === decoded.id);
+      const userIndex = users.findIndex((u) => u.id === decoded.id);
 
       if (userIndex === -1) {
-        throw new Error('User not found');
+        throw new Error("User not found");
       }
 
       // Update user data (except password and role)
       const { password, role, ...updateData } = userData;
       users[userIndex] = {
         ...users[userIndex],
-        ...updateData
+        ...updateData,
       };
 
       const { password: _, ...userWithoutPassword } = users[userIndex];
 
       return {
         success: true,
-        data: userWithoutPassword
+        data: userWithoutPassword,
       };
     } catch (error) {
-      throw new Error('Invalid token');
+      throw new Error("Invalid token");
     }
-  }
+  },
 };
 
 export default mockAPI;

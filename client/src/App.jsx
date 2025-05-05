@@ -7,7 +7,6 @@ import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Features from './pages/Features';
-import Pricing from './pages/Pricing';
 import Contact from './pages/Contact';
 import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
@@ -20,7 +19,7 @@ import Employees from './pages/Employees';
 import Departments from './pages/Departments';
 import Performance from './pages/Performance';
 import Reports from './pages/Reports';
-// import Setting from './pages/Setting';
+
 
 // Employee Pages
 import EmployeeDashboard from './pages/employee/EmployeeDashboard';
@@ -44,7 +43,6 @@ function App() {
         {/* Public routes */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/features" element={<Features />} />
-        <Route path="/pricing" element={<Pricing />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:id" element={<BlogPost />} />
@@ -60,7 +58,6 @@ function App() {
           <Route path="/admin/attendance" element={<AdminAttendance />} />
           <Route path="/admin/performance" element={<Performance />} />
           <Route path="/admin/reports" element={<Reports />} />
-          {/* <Route path="/admin/settings" element={<Setting />} /> */}
         </Route>
 
         {/* Employee routes */}

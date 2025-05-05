@@ -109,6 +109,7 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       const response = await authService.getUserProfile();
+      console.log('Refreshed profile:', response.data);
       setUser(response.data);
       return response;
     } catch (error) {

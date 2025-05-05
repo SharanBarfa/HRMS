@@ -38,8 +38,8 @@ const TopBar = () => {
   };
 
   // Get user information
-  const userRole = user?.role || 'employee';
-  const userName = user?.name || 'User';
+  const userRole = user?.user?.role;
+  const userName = user?.user?.name;
 
   // Determine links based on role
   const dashboardLink = userRole === 'admin' ? '/admin/dashboard' : '/employee/dashboard';
@@ -70,8 +70,6 @@ const TopBar = () => {
           <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center">
               <Link to={dashboardLink} className="text-xl font-bold text-gray-800">
-                {/* <span className="hidden md:inline">ERM System</span>
-                <span className="md:hidden">ERM</span> */}
               </Link>
               <span className="ml-2 px-2 py-1 text-xs font-medium bg-indigo-100 text-indigo-800 rounded-md capitalize">
                 {userRole}

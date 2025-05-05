@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import AdminLayoutNoSidebar from '../components/layout/AdminLayoutNoSidebar';
 
 const Employees = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -40,7 +38,6 @@ const Employees = () => {
 
 
   return (
-    <AdminLayoutNoSidebar>
       <div className="py-6">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-semibold text-gray-900">Employees</h1>
@@ -226,7 +223,6 @@ const Employees = () => {
           </div>
         </div>
       </div>
-    </AdminLayoutNoSidebar>
   );
 };
 
