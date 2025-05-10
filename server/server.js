@@ -11,6 +11,7 @@ import departmentRoutes from './routes/departmentRoutes.js';
 import attendanceRoutes from './routes/attendanceRoutes.js';
 import performanceRoutes from './routes/performanceRoutes.js';
 import reportRoutes from './routes/reportRoutes.js';
+import teamRoutes from './routes/teamRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -23,10 +24,21 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+// Allow CORS from any origin in development mode
 app.use(cors({
-  origin: process.env.CLIENT_URL,
-  credentials: true
+  origin: '*', // Allow all origins in development
+  credentials: false, // Set to false when using '*' for origin
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// Log all requests in development
+app.use((req, res, next) => {
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`${req.method} ${req.url}`);
+  }
+  next();
+});
 
 // Logging middleware in development
 if (process.env.NODE_ENV === 'development') {
@@ -40,6 +52,7 @@ app.use('/api/departments', departmentRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/performance', performanceRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/teams', teamRoutes);
 
 // Base route
 app.get('/', (req, res) => {

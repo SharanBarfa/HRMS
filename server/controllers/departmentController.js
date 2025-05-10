@@ -98,27 +98,22 @@ export const getDepartmentById = async (req, res) => {
 // @access  Private/Admin
 export const createDepartment = async (req, res) => {
   try {
-    const { name, description, manager, budget, location } = req.body;
-    
-    // Check if department already exists
+    const { name, description } = req.body;
+
     const departmentExists = await Department.findOne({ name });
-    
+
     if (departmentExists) {
       return res.status(400).json({
         success: false,
         error: 'Department already exists'
       });
     }
-    
-    // Create department
+
     const department = await Department.create({
       name,
-      description,
-      manager,
-      budget,
-      location
+      description
     });
-    
+
     res.status(201).json({
       success: true,
       data: department
@@ -136,24 +131,37 @@ export const createDepartment = async (req, res) => {
 // @access  Private/Admin
 export const updateDepartment = async (req, res) => {
   try {
-    let department = await Department.findById(req.params.id);
-    
+    const { name, description, status } = req.body;
+
+    const department = await Department.findById(req.params.id);
+
     if (!department) {
       return res.status(404).json({
         success: false,
         error: 'Department not found'
       });
     }
-    
-    // Update department
-    department = await Department.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true
-    });
-    
+
+    // Check if name is being changed and if it already exists
+    if (name && name !== department.name) {
+      const departmentExists = await Department.findOne({ name });
+      if (departmentExists) {
+        return res.status(400).json({
+          success: false,
+          error: 'Department name already exists'
+        });
+      }
+    }
+
+    department.name = name || department.name;
+    department.description = description || department.description;
+    department.status = status || department.status;
+
+    const updatedDepartment = await department.save();
+
     res.json({
       success: true,
-      data: department
+      data: updatedDepartment
     });
   } catch (error) {
     res.status(500).json({
@@ -169,26 +177,18 @@ export const updateDepartment = async (req, res) => {
 export const deleteDepartment = async (req, res) => {
   try {
     const department = await Department.findById(req.params.id);
-    
+
     if (!department) {
       return res.status(404).json({
         success: false,
         error: 'Department not found'
       });
     }
-    
-    // Check if there are employees in this department
-    const employeeCount = await Employee.countDocuments({ department: department._id });
-    
-    if (employeeCount > 0) {
-      return res.status(400).json({
-        success: false,
-        error: `Cannot delete department with ${employeeCount} employees. Reassign employees first.`
-      });
-    }
-    
-    await department.deleteOne();
-    
+
+    // Instead of deleting, set status to inactive
+    department.status = 'inactive';
+    await department.save();
+
     res.json({
       success: true,
       data: {}

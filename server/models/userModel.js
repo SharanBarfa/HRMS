@@ -1,3 +1,4 @@
+
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -41,6 +42,43 @@ const userSchema = new mongoose.Schema({
   },
   phone: {
     type: String
+  },
+  // New fields from the form
+  joinDate: {
+    type: Date,
+    default: Date.now
+  },
+  address: {
+    street: {
+      type: String,
+      trim: true
+    },
+    city: {
+      type: String,
+      trim: true
+    },
+    state: {
+      type: String,
+      trim: true
+    },
+    country: {
+      type: String,
+      trim: true
+    }
+  },
+  emergencyContact: {
+    name: {
+      type: String,
+      trim: true
+    },
+    relationship: {
+      type: String,
+      trim: true
+    },
+    phone: {
+      type: String,
+      trim: true
+    }
   },
   resetPasswordToken: String,
   resetPasswordExpire: Date,

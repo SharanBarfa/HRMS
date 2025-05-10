@@ -34,31 +34,10 @@ const Login = () => {
     }
   };
 
-  // Demo login handlers
-  const handleDemoAdminLogin = async () => {
-    try {
-      setIsLoading(true);
-      setError('');
-      await login('admin@example.com', 'admin123');
-    } catch (error) {
-      setError(error.error || 'Demo login failed. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  
+ 
 
-  const handleDemoEmployeeLogin = async () => {
-    try {
-      setIsLoading(true);
-      setError('');
-      await login('employee@example.com', 'employee123');
-    } catch (error) {
-      setError(error.error || 'Demo login failed. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+ 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">

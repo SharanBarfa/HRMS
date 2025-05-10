@@ -16,11 +16,37 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const initAuth = () => {
       try {
-        // Check if user is authenticated
-        if (authService.isAuthenticated()) {
-          // Get user from local storage
-          const currentUser = authService.getCurrentUser();
-          setUser(currentUser);
+        console.log('Initializing auth state');
+
+        // Check if there's a token and user data in localStorage
+        const token = localStorage.getItem('token');
+        const userStr = localStorage.getItem('user');
+
+        if (token && userStr) {
+          try {
+            // Parse the user data
+            const userData = JSON.parse(userStr);
+            console.log('Found user data in localStorage:', userData.name);
+
+            // Set the user in state
+            setUser(userData);
+
+            // Refresh the user profile in the background
+            authService.getUserProfile()
+              .then(response => {
+                if (response.success) {
+                  console.log('Refreshed user profile:', response.data);
+                  setUser(response.data);
+                }
+              })
+              .catch(error => {
+                console.error('Failed to refresh user profile:', error);
+              });
+          } catch (error) {
+            console.error('Error parsing user data from localStorage:', error);
+          }
+        } else {
+          console.log('No token or user data found in localStorage');
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
@@ -36,20 +62,44 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       setLoading(true);
+      console.log('Registering user with data:', userData);
+
       const response = await authService.register(userData);
-      setUser(response.data);
+      console.log('Registration response:', response);
+
+      if (!response.success) {
+        throw new Error(response.error || 'Registration failed');
+      }
+
+      // Extract user data from the response
+      const userDataFromResponse = response.data;
+
+      // Ensure we set the user in state
+      setUser(userDataFromResponse);
+
+      // Make sure localStorage is updated with the token and user data
+      localStorage.setItem('token', userDataFromResponse.token);
+      localStorage.setItem('user', JSON.stringify(userDataFromResponse));
+
+      console.log('User data after registration:', userDataFromResponse);
       toast.success('Registration successful!');
 
-      // Redirect based on user role (default is employee for new registrations)
-      if (response.data.role === 'admin') {
-        navigate('/admin/dashboard');
-      } else {
-        navigate('/employee/dashboard');
-      }
+      // Add a small delay to ensure state is updated before navigation
+      setTimeout(() => {
+        // Redirect based on user role
+        if (userDataFromResponse.role === 'admin') {
+          console.log('Redirecting to admin dashboard');
+          navigate('/admin/dashboard');
+        } else {
+          console.log('Redirecting to employee dashboard');
+          navigate('/employee/dashboard');
+        }
+      }, 100);
 
       return response;
     } catch (error) {
-      toast.error(error.error || 'Registration failed');
+      console.error('Registration error in context:', error);
+      toast.error(error.message || 'Registration failed');
       throw error;
     } finally {
       setLoading(false);
@@ -60,20 +110,44 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       setLoading(true);
+      console.log('Attempting login with email:', email);
+
       const response = await authService.login(email, password);
-      setUser(response.data);
+      console.log('Login response:', response);
+
+      if (!response.success) {
+        throw new Error(response.error || 'Login failed');
+      }
+
+      // Extract user data from the response
+      const userData = response.data.user || response.data;
+
+      // Ensure we set the user in state
+      setUser(userData);
+
+      // Make sure localStorage is updated with the token and user data
+      localStorage.setItem('token', userData.token);
+      localStorage.setItem('user', JSON.stringify(userData));
+
+      console.log('User data after login:', userData);
       toast.success('Login successful!');
 
-      // Redirect based on user role
-      if (response.data.role === 'admin') {
-        navigate('/admin/dashboard');
-      } else {
-        navigate('/employee/dashboard');
-      }
+      // Add a small delay to ensure state is updated before navigation
+      setTimeout(() => {
+        // Redirect based on user role
+        if (userData.role === 'admin') {
+          console.log('Redirecting to admin dashboard');
+          navigate('/admin/dashboard');
+        } else {
+          console.log('Redirecting to employee dashboard');
+          navigate('/employee/dashboard');
+        }
+      }, 100);
 
       return response;
     } catch (error) {
-      toast.error(error.error || 'Login failed');
+      console.error('Login error:', error);
+      toast.error(error.message || 'Login failed');
       throw error;
     } finally {
       setLoading(false);

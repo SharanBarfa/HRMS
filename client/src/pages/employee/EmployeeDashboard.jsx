@@ -1,18 +1,160 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { getTodayAttendanceStatus, checkIn, checkOut } from '../../services/attendanceService';
+import { getCurrentUserTeams } from '../../services/teamService';
+import { getCurrentUserPerformance } from '../../services/performanceService';
+import { getCurrentEmployee } from '../../services/employeeService';
 
 const EmployeeDashboard = () => {
   const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [todayAttendance, setTodayAttendance] = useState(null);
+  const [teams, setTeams] = useState([]);
+  const [performanceReviews, setPerformanceReviews] = useState([]);
+  const [checkingIn, setCheckingIn] = useState(false);
+  const [checkingOut, setCheckingOut] = useState(false);
+  const [employee, setEmployee] = useState(null);
 
-  // Sample data for employee dashboard
-  const attendanceStats = {
-    present: 22,
-    absent: 0,
-    late: 1,
-    leave: 2,
-    totalWorkDays: 25
+  // Fetch today's attendance status
+  useEffect(() => {
+    const fetchAttendanceStatus = async () => {
+      try {
+        setLoading(true);
+        console.log('Fetching attendance status in component');
+        const status = await getTodayAttendanceStatus();
+        console.log('Attendance status in component:', status);
+        setTodayAttendance(status);
+      } catch (err) {
+        console.error('Error fetching attendance status in component:', err);
+        setError('Failed to load attendance status');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAttendanceStatus();
+  }, []);
+
+  // Fetch teams
+  useEffect(() => {
+    const fetchTeams = async () => {
+      try {
+        setLoading(true);
+        console.log('Fetching teams in component');
+        const response = await getCurrentUserTeams();
+        console.log('Teams response in component:', response);
+        setTeams(response.data || []);
+      } catch (err) {
+        console.error('Error fetching teams in component:', err);
+        // Don't set error for teams as it's not critical
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTeams();
+  }, []);
+
+  // Fetch performance reviews
+  useEffect(() => {
+    const fetchPerformance = async () => {
+      try {
+        setLoading(true);
+        console.log('Fetching performance in component');
+        const response = await getCurrentUserPerformance();
+        console.log('Performance response in component:', response);
+        setPerformanceReviews(response.data || []);
+      } catch (err) {
+        console.error('Error fetching performance reviews in component:', err);
+        // Don't set error for performance as it's not critical
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPerformance();
+  }, []);
+
+  // Fetch employee information
+  useEffect(() => {
+    const fetchEmployeeInfo = async () => {
+      try {
+        setLoading(true);
+        console.log('Fetching employee information');
+        const response = await getCurrentEmployee();
+        console.log('Employee information response:', response);
+        if (response.success) {
+          setEmployee(response.data);
+        } else {
+          console.warn('Failed to fetch employee information:', response.error);
+        }
+      } catch (err) {
+        console.error('Error fetching employee information:', err);
+        // Don't set error as it's not critical
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEmployeeInfo();
+  }, []);
+
+  // Handle check-in
+  const handleCheckIn = async () => {
+    try {
+      setCheckingIn(true);
+      // Get employee ID from user object
+      const employeeId = user?.employee?._id || user?.user?.employee?._id || user?._id;
+
+      console.log('User object for check-in:', user);
+      console.log('Employee ID for check-in:', employeeId);
+
+      if (!employeeId) {
+        setError('Employee ID not found');
+        return;
+      }
+
+      console.log('Calling check-in with employee ID:', employeeId);
+      const response = await checkIn(employeeId);
+      console.log('Check-in response in component:', response);
+      setTodayAttendance(response.data);
+    } catch (err) {
+      console.error('Error checking in in component:', err);
+      setError(err.error || 'Failed to check in');
+    } finally {
+      setCheckingIn(false);
+    }
   };
 
+  // Handle check-out
+  const handleCheckOut = async () => {
+    try {
+      setCheckingOut(true);
+      // Get employee ID from user object
+      const employeeId = user?.employee?._id || user?.user?.employee?._id || user?._id;
+
+      console.log('User object for check-out:', user);
+      console.log('Employee ID for check-out:', employeeId);
+
+      if (!employeeId) {
+        setError('Employee ID not found');
+        return;
+      }
+
+      console.log('Calling check-out with employee ID:', employeeId);
+      const response = await checkOut(employeeId);
+      console.log('Check-out response in component:', response);
+      setTodayAttendance(response.data);
+    } catch (err) {
+      console.error('Error checking out in component:', err);
+      setError(err.error || 'Failed to check out');
+    } finally {
+      setCheckingOut(false);
+    }
+  };
+
+  // Sample data for tasks and announcements
   const upcomingLeaves = [
     { id: 1, type: 'Vacation', startDate: 'May 15, 2025', endDate: 'May 20, 2025', status: 'Approved' },
     { id: 2, type: 'Sick Leave', startDate: 'Jun 5, 2025', endDate: 'Jun 6, 2025', status: 'Pending' }
@@ -30,106 +172,275 @@ const EmployeeDashboard = () => {
     { id: 3, title: 'Office Renovation', content: 'Office renovations will begin next week. Please prepare for temporary relocation.', date: 'Apr 1, 2025' }
   ];
 
-  // Calculate attendance percentage
-  const attendancePercentage = Math.round((attendanceStats.present / attendanceStats.totalWorkDays) * 100);
+
 
   return (
     <div className="py-6">
       <div className="px-4 mx-auto max-w-7xl sm:px-6 md:px-8">
         <h1 className="text-2xl font-semibold text-gray-900">My Dashboard</h1>
         <p className="mt-1 text-sm text-gray-600">
-          Welcome back, {user?.name || 'Employee'}! Here's your personal overview.
+          Welcome back, {user?.user?.name || user?.name || 'Employee'}! Here's your personal overview.
         </p>
+
+        {/* Error message */}
+        {error && (
+          <div className="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <span className="block sm:inline">{error}</span>
+            <span className="absolute top-0 bottom-0 right-0 px-4 py-3" onClick={() => setError(null)}>
+              <svg className="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                <title>Close</title>
+                <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/>
+              </svg>
+            </span>
+          </div>
+        )}
+
+        {/* Employee Information Card */}
+        <div className="mt-4 bg-white shadow overflow-hidden sm:rounded-lg">
+          <div className="px-4 py-5 sm:px-6">
+            <h3 className="text-lg leading-6 font-medium text-gray-900">Employee Information</h3>
+            <p className="mt-1 max-w-2xl text-sm text-gray-500">Personal and job details</p>
+          </div>
+          <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
+            {loading ? (
+              <div className="text-center py-4">
+                <p className="text-gray-500">Loading employee information...</p>
+              </div>
+            ) : employee ? (
+              <dl className="sm:divide-y sm:divide-gray-200">
+                <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt className="text-sm font-medium text-gray-500">Full name</dt>
+                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    {employee.firstName} {employee.lastName}
+                  </dd>
+                </div>
+                <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt className="text-sm font-medium text-gray-500">Employee ID</dt>
+                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    {employee.employeeId}
+                  </dd>
+                </div>
+                <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt className="text-sm font-medium text-gray-500">Position</dt>
+                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    {employee.position}
+                  </dd>
+                </div>
+                <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt className="text-sm font-medium text-gray-500">Department</dt>
+                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    {employee.department?.name || 'Not assigned'}
+                  </dd>
+                </div>
+                <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt className="text-sm font-medium text-gray-500">Email</dt>
+                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    {employee.email}
+                  </dd>
+                </div>
+                <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt className="text-sm font-medium text-gray-500">Join Date</dt>
+                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    {new Date(employee.joinDate).toLocaleDateString()}
+                  </dd>
+                </div>
+              </dl>
+            ) : (
+              <div className="text-center py-4">
+                <p className="text-gray-500">No employee information available</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Check-in/Check-out Card */}
+        <div className="mt-4 bg-white shadow overflow-hidden sm:rounded-lg">
+          <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
+            <div>
+              <h3 className="text-lg leading-6 font-medium text-gray-900">Attendance</h3>
+              <p className="mt-1 max-w-2xl text-sm text-gray-500">Today's attendance status</p>
+            </div>
+            <div className="flex space-x-3">
+              {!todayAttendance?.checkIn ? (
+                <button
+                  onClick={handleCheckIn}
+                  disabled={checkingIn}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                >
+                  {checkingIn ? 'Checking in...' : 'Check In'}
+                </button>
+              ) : !todayAttendance?.checkOut ? (
+                <button
+                  onClick={handleCheckOut}
+                  disabled={checkingOut}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                >
+                  {checkingOut ? 'Checking out...' : 'Check Out'}
+                </button>
+              ) : (
+                <span className="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                  Completed for today
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
+            <dl className="sm:divide-y sm:divide-gray-200">
+              <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt className="text-sm font-medium text-gray-500">Status</dt>
+                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                  {todayAttendance ? (
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      todayAttendance.status === 'present' ? 'bg-green-100 text-green-800' :
+                      todayAttendance.status === 'absent' ? 'bg-red-100 text-red-800' :
+                      todayAttendance.status === 'late' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {todayAttendance.status.charAt(0).toUpperCase() + todayAttendance.status.slice(1)}
+                    </span>
+                  ) : (
+                    <span className="text-gray-500">Not recorded yet</span>
+                  )}
+                </dd>
+              </div>
+              <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt className="text-sm font-medium text-gray-500">Check-in Time</dt>
+                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                  {todayAttendance?.checkIn ? (
+                    new Date(todayAttendance.checkIn).toLocaleTimeString()
+                  ) : (
+                    <span className="text-gray-500">Not checked in yet</span>
+                  )}
+                </dd>
+              </div>
+              <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt className="text-sm font-medium text-gray-500">Check-out Time</dt>
+                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                  {todayAttendance?.checkOut ? (
+                    new Date(todayAttendance.checkOut).toLocaleTimeString()
+                  ) : (
+                    <span className="text-gray-500">Not checked out yet</span>
+                  )}
+                </dd>
+              </div>
+              {todayAttendance?.checkIn && todayAttendance?.checkOut && (
+                <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt className="text-sm font-medium text-gray-500">Work Hours Today</dt>
+                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    {todayAttendance.workHours ? (
+                      <span className="font-semibold">{todayAttendance.workHours.toFixed(2)} hours</span>
+                    ) : (
+                      <span className="text-gray-500">Calculating...</span>
+                    )}
+                  </dd>
+                </div>
+              )}
+            </dl>
+          </div>
+        </div>
       </div>
-      
+
       <div className="px-4 mx-auto max-w-7xl sm:px-6 md:px-8">
-        {/* Stats cards */}
-        <div className="grid grid-cols-1 gap-5 mt-6 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="overflow-hidden bg-white rounded-lg shadow">
+
+        {/* Team and Performance */}
+        <div className="grid grid-cols-1 gap-5 mt-6 lg:grid-cols-2">
+          {/* My Teams */}
+          <div className="bg-white overflow-hidden shadow rounded-lg">
             <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0 p-3 bg-indigo-500 rounded-md">
-                  <svg className="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                  </svg>
-                </div>
-                <div className="flex-1 w-0 ml-5">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Attendance Rate</dt>
-                    <dd className="flex items-baseline">
-                      <div className="text-2xl font-semibold text-gray-900">{attendancePercentage}%</div>
-                    </dd>
-                  </dl>
-                </div>
+              <h3 className="text-lg font-medium text-gray-900">My Teams</h3>
+              <div className="mt-4 flow-root">
+                {loading ? (
+                  <p className="text-center py-4 text-gray-500">Loading teams...</p>
+                ) : teams.length > 0 ? (
+                  <ul className="-my-5 divide-y divide-gray-200">
+                    {teams.map((team) => (
+                      <li key={team._id} className="py-4">
+                        <div className="flex items-center space-x-4">
+                          <div className="flex-shrink-0">
+                            <span className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500">
+                              <span className="text-sm font-medium leading-none text-white">{team.name.charAt(0)}</span>
+                            </span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">{team.name}</p>
+                            <p className="text-sm text-gray-500 truncate">
+                              {team.department?.name || 'No department'} • {team.members?.length || 0} members
+                            </p>
+                          </div>
+                          <div>
+                            <a
+                              href={`/employee/teams/${team._id}`}
+                              className="inline-flex items-center shadow-sm px-2.5 py-0.5 border border-gray-300 text-sm leading-5 font-medium rounded-full text-gray-700 bg-white hover:bg-gray-50"
+                            >
+                              View
+                            </a>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-center py-4 text-gray-500">You are not assigned to any teams yet.</p>
+                )}
+              </div>
+              <div className="mt-6">
+                <a href="/employee/teams" className="w-full flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                  View all teams
+                </a>
               </div>
             </div>
           </div>
 
-          <div className="overflow-hidden bg-white rounded-lg shadow">
+          {/* Performance Reviews */}
+          <div className="bg-white overflow-hidden shadow rounded-lg">
             <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0 p-3 bg-green-500 rounded-md">
-                  <svg className="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <div className="flex-1 w-0 ml-5">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Present Days</dt>
-                    <dd className="flex items-baseline">
-                      <div className="text-2xl font-semibold text-gray-900">{attendanceStats.present}</div>
-                      <div className="ml-2 text-sm font-medium text-green-600">
-                        This Month
-                      </div>
-                    </dd>
-                  </dl>
-                </div>
+              <h3 className="text-lg font-medium text-gray-900">Performance Reviews</h3>
+              <div className="mt-4 flow-root">
+                {loading ? (
+                  <p className="text-center py-4 text-gray-500">Loading performance data...</p>
+                ) : performanceReviews.length > 0 ? (
+                  <ul className="-my-5 divide-y divide-gray-200">
+                    {performanceReviews.map((review) => (
+                      <li key={review._id} className="py-4">
+                        <div className="flex items-center space-x-4">
+                          <div className="flex-shrink-0">
+                            <span className={`inline-flex items-center justify-center h-8 w-8 rounded-full ${
+                              review.rating >= 4 ? 'bg-green-500' :
+                              review.rating >= 3 ? 'bg-blue-500' :
+                              review.rating >= 2 ? 'bg-yellow-500' :
+                              'bg-red-500'
+                            }`}>
+                              <span className="text-sm font-medium leading-none text-white">{review.rating}</span>
+                            </span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              {review.reviewType || 'Performance Review'} - {new Date(review.reviewDate).toLocaleDateString()}
+                            </p>
+                            <p className="text-sm text-gray-500 truncate">
+                              Reviewer: {review.reviewer?.name || 'System'}
+                            </p>
+                          </div>
+                          <div>
+                            <a
+                              href={`/employee/performance/${review._id}`}
+                              className="inline-flex items-center shadow-sm px-2.5 py-0.5 border border-gray-300 text-sm leading-5 font-medium rounded-full text-gray-700 bg-white hover:bg-gray-50"
+                            >
+                              View
+                            </a>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-center py-4 text-gray-500">No performance reviews available yet.</p>
+                )}
               </div>
-            </div>
-          </div>
-
-          <div className="overflow-hidden bg-white rounded-lg shadow">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0 p-3 bg-yellow-500 rounded-md">
-                  <svg className="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <div className="flex-1 w-0 ml-5">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Leave Days</dt>
-                    <dd className="flex items-baseline">
-                      <div className="text-2xl font-semibold text-gray-900">{attendanceStats.leave}</div>
-                      <div className="ml-2 text-sm font-medium text-yellow-600">
-                        This Month
-                      </div>
-                    </dd>
-                  </dl>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="overflow-hidden bg-white rounded-lg shadow">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0 p-3 bg-red-500 rounded-md">
-                  <svg className="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  </svg>
-                </div>
-                <div className="flex-1 w-0 ml-5">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Late Days</dt>
-                    <dd className="flex items-baseline">
-                      <div className="text-2xl font-semibold text-gray-900">{attendanceStats.late}</div>
-                      <div className="ml-2 text-sm font-medium text-red-600">
-                        This Month
-                      </div>
-                    </dd>
-                  </dl>
-                </div>
+              <div className="mt-6">
+                <a href="/employee/performance" className="w-full flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                  View all reviews
+                </a>
               </div>
             </div>
           </div>
@@ -158,15 +469,15 @@ const EmployeeDashboard = () => {
                             Due: {task.dueDate}
                           </span>
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            task.priority === 'High' ? 'bg-red-100 text-red-800' : 
-                            task.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' : 
+                            task.priority === 'High' ? 'bg-red-100 text-red-800' :
+                            task.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
                             'bg-green-100 text-green-800'
                           }`}>
                             {task.priority}
                           </span>
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ml-2 ${
-                            task.status === 'Completed' ? 'bg-green-100 text-green-800' : 
-                            task.status === 'In Progress' ? 'bg-blue-100 text-blue-800' : 
+                            task.status === 'Completed' ? 'bg-green-100 text-green-800' :
+                            task.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
                             'bg-gray-100 text-gray-800'
                           }`}>
                             {task.status}
@@ -199,8 +510,8 @@ const EmployeeDashboard = () => {
                         </div>
                         <div className="flex-shrink-0 ml-4">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            leave.status === 'Approved' ? 'bg-green-100 text-green-800' : 
-                            leave.status === 'Rejected' ? 'bg-red-100 text-red-800' : 
+                            leave.status === 'Approved' ? 'bg-green-100 text-green-800' :
+                            leave.status === 'Rejected' ? 'bg-red-100 text-red-800' :
                             'bg-yellow-100 text-yellow-800'
                           }`}>
                             {leave.status}

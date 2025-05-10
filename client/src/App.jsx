@@ -1,6 +1,8 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useEffect } from 'react';
+import { hasPendingRedirect, completeRegistration } from './utils/registrationHelper';
 
 // Public Pages
 import LandingPage from './pages/LandingPage';
@@ -36,6 +38,24 @@ import DashboardRedirect from './components/common/DashboardRedirect';
 import { AuthProvider } from './context/AuthContext';
 
 function App() {
+  const navigate = useNavigate();
+
+  // Handle redirect after registration
+  useEffect(() => {
+    // Check if there's a pending redirect from registration
+    if (hasPendingRedirect()) {
+      console.log('Found pending registration redirect');
+
+      // Complete the registration process and get the redirect path
+      const redirectPath = completeRegistration();
+
+      if (redirectPath) {
+        console.log('Redirecting to:', redirectPath);
+        navigate(redirectPath, { replace: true });
+      }
+    }
+  }, [navigate]);
+
   return (
     <AuthProvider>
       <ToastContainer position="top-right" autoClose={3000} />

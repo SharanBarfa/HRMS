@@ -1,26 +1,21 @@
 import express from 'express';
 import {
+  createDepartment,
   getDepartments,
   getDepartmentById,
-  createDepartment,
   updateDepartment,
-  deleteDepartment,
-  getDepartmentStats
+  deleteDepartment
 } from '../controllers/departmentController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Protected routes
 router.route('/')
-  .get(protect, getDepartments)
-  .post(protect, admin, createDepartment);
-
-router.route('/stats')
-  .get(protect, getDepartmentStats);
+  .post(protect, admin, createDepartment)
+  .get(getDepartments);
 
 router.route('/:id')
-  .get(protect, getDepartmentById)
+  .get(getDepartmentById)
   .put(protect, admin, updateDepartment)
   .delete(protect, admin, deleteDepartment);
 

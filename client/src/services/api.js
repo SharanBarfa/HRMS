@@ -2,35 +2,67 @@ import axios from 'axios';
 
 // Create axios instance
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: 'http://localhost:5000/api', // Back to original server
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  withCredentials: false // Must be false when using wildcard CORS
 });
 
 // Add request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
+    console.log('API Request:', config.method.toUpperCase(), config.url);
+
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log('Token added to request');
+    } else {
+      console.log('No token found in localStorage');
     }
+
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    console.error('Request interceptor error:', error);
+    return Promise.reject(error);
+  }
 );
 
 // Add response interceptor to handle errors
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('API Response:', response.status, response.config.url);
+    return response;
+  },
   (error) => {
-    // Handle 401 Unauthorized errors
-    if (error.response && error.response.status === 401) {
-      // Clear local storage and redirect to login
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+    console.error('API Error:', error);
+
+    if (error.response) {
+      console.error('Error status:', error.response.status);
+      console.error('Error data:', error.response.data);
+
+      // Handle 401 Unauthorized errors
+      if (error.response.status === 401) {
+        console.log('Unauthorized access detected');
+        // Only clear storage and redirect if not already on login or register page
+        const currentPath = window.location.pathname;
+        if (currentPath !== '/login' && currentPath !== '/register') {
+          console.log('Redirecting to login');
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          window.location.href = '/login';
+        } else {
+          console.log('Already on login/register page, not redirecting');
+        }
+      }
+    } else if (error.request) {
+      console.error('No response received:', error.request);
+    } else {
+      console.error('Error setting up request:', error.message);
     }
+
     return Promise.reject(error);
   }
 );

@@ -3,13 +3,18 @@ import mongoose from 'mongoose';
 const departmentSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: [true, 'Please add a department name'],
+    required: [true, 'Department name is required'],
     unique: true,
     trim: true
   },
   description: {
     type: String,
-    required: [true, 'Please add a description']
+    trim: true
+  },
+  status: {
+    type: String,
+    enum: ['active', 'inactive'],
+    default: 'active'
   },
   manager: {
     type: mongoose.Schema.Types.ObjectId,

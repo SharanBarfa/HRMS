@@ -6,6 +6,11 @@ const TopBar = () => {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, logout } = useAuth();
+
+  // Handle case when user is null or undefined
+  if (!user) {
+    return null; // Don't render TopBar if user is not available
+  }
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -38,8 +43,8 @@ const TopBar = () => {
   };
 
   // Get user information
-  const userRole = user?.user?.role;
-  const userName = user?.user?.name;
+  const userRole = user?.user?.role || user?.role;
+  const userName = user?.user?.name || user?.name;
 
   // Determine links based on role
   const dashboardLink = userRole === 'admin' ? '/admin/dashboard' : '/employee/dashboard';
@@ -71,9 +76,11 @@ const TopBar = () => {
             <div className="flex-shrink-0 flex items-center">
               <Link to={dashboardLink} className="text-xl font-bold text-gray-800">
               </Link>
-              <span className="ml-2 px-2 py-1 text-xs font-medium bg-indigo-100 text-indigo-800 rounded-md capitalize">
-                {userRole}
-              </span>
+              {userRole && (
+                <span className="ml-2 px-2 py-1 text-xs font-medium bg-indigo-100 text-indigo-800 rounded-md capitalize">
+                  {userRole}
+                </span>
+              )}
             </div>
 
             {/* Desktop navigation */}
@@ -121,8 +128,8 @@ const TopBar = () => {
           <div className="flex items-center">
             <div className="relative">
               <div className="mr-3">
-               
-                 
+
+
               </div>
               <button
                 type="button"
@@ -134,9 +141,9 @@ const TopBar = () => {
                 }}
               >
                 <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold mr-2">
-                  {userName.charAt(0)}
+                  {userName ? userName.charAt(0) : 'U'}
                 </div>
-                <span className="hidden md:block text-sm font-medium text-gray-700">{userName}</span>
+                <span className="hidden md:block text-sm font-medium text-gray-700">{userName || 'User'}</span>
                 <svg
                   className="ml-1 h-5 w-5 text-gray-400"
                   xmlns="http://www.w3.org/2000/svg"
@@ -160,7 +167,7 @@ const TopBar = () => {
                   >
                     Your Profile
                   </Link>
-                 
+
                   <button
                     onClick={handleLogout}
                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"

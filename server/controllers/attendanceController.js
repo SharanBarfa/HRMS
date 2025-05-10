@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Attendance from '../models/attendanceModel.js';
 import Employee from '../models/employeeModel.js';
 
@@ -8,29 +9,29 @@ export const getAttendanceRecords = async (req, res) => {
   try {
     // Build query
     let query = {};
-    
+
     // Filter by date
     if (req.query.date) {
       const date = new Date(req.query.date);
       const nextDay = new Date(date);
       nextDay.setDate(nextDay.getDate() + 1);
-      
+
       query.date = {
         $gte: date,
         $lt: nextDay
       };
     }
-    
+
     // Filter by employee
     if (req.query.employee) {
       query.employee = req.query.employee;
     }
-    
+
     // Filter by status
     if (req.query.status && req.query.status !== 'all') {
       query.status = req.query.status;
     }
-    
+
     // Filter by date range
     if (req.query.startDate && req.query.endDate) {
       query.date = {
@@ -38,12 +39,12 @@ export const getAttendanceRecords = async (req, res) => {
         $lte: new Date(req.query.endDate)
       };
     }
-    
+
     // Pagination
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
     const startIndex = (page - 1) * limit;
-    
+
     const attendanceRecords = await Attendance.find(query)
       .populate({
         path: 'employee',
@@ -56,10 +57,10 @@ export const getAttendanceRecords = async (req, res) => {
       .sort({ date: -1, checkIn: -1 })
       .skip(startIndex)
       .limit(limit);
-    
+
     // Get total count
     const total = await Attendance.countDocuments(query);
-    
+
     res.json({
       success: true,
       count: attendanceRecords.length,
@@ -94,14 +95,14 @@ export const getAttendanceById = async (req, res) => {
         }
       })
       .populate('createdBy', 'name');
-    
+
     if (!attendance) {
       return res.status(404).json({
         success: false,
         error: 'Attendance record not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: attendance
@@ -120,23 +121,23 @@ export const getAttendanceById = async (req, res) => {
 export const createAttendance = async (req, res) => {
   try {
     const { employee, date, checkIn, checkOut, status, notes, location } = req.body;
-    
+
     // Check if employee exists
     const employeeExists = await Employee.findById(employee);
-    
+
     if (!employeeExists) {
       return res.status(404).json({
         success: false,
         error: 'Employee not found'
       });
     }
-    
+
     // Check if attendance record already exists for this employee and date
     if (date) {
       const dateObj = new Date(date);
       const startOfDay = new Date(dateObj.setHours(0, 0, 0, 0));
       const endOfDay = new Date(dateObj.setHours(23, 59, 59, 999));
-      
+
       const existingRecord = await Attendance.findOne({
         employee,
         date: {
@@ -144,7 +145,7 @@ export const createAttendance = async (req, res) => {
           $lte: endOfDay
         }
       });
-      
+
       if (existingRecord) {
         return res.status(400).json({
           success: false,
@@ -152,7 +153,7 @@ export const createAttendance = async (req, res) => {
         });
       }
     }
-    
+
     // Create attendance record
     const attendance = await Attendance.create({
       employee,
@@ -164,7 +165,7 @@ export const createAttendance = async (req, res) => {
       location,
       createdBy: req.user._id
     });
-    
+
     res.status(201).json({
       success: true,
       data: attendance
@@ -183,20 +184,20 @@ export const createAttendance = async (req, res) => {
 export const updateAttendance = async (req, res) => {
   try {
     let attendance = await Attendance.findById(req.params.id);
-    
+
     if (!attendance) {
       return res.status(404).json({
         success: false,
         error: 'Attendance record not found'
       });
     }
-    
+
     // Update attendance record
     attendance = await Attendance.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true
     });
-    
+
     res.json({
       success: true,
       data: attendance
@@ -215,16 +216,16 @@ export const updateAttendance = async (req, res) => {
 export const deleteAttendance = async (req, res) => {
   try {
     const attendance = await Attendance.findById(req.params.id);
-    
+
     if (!attendance) {
       return res.status(404).json({
         success: false,
         error: 'Attendance record not found'
       });
     }
-    
+
     await attendance.deleteOne();
-    
+
     res.json({
       success: true,
       data: {}
@@ -243,22 +244,32 @@ export const deleteAttendance = async (req, res) => {
 export const checkIn = async (req, res) => {
   try {
     const { employeeId, location } = req.body;
-    
-    // Get employee by ID
-    const employee = await Employee.findOne({ employeeId });
-    
+
+    // Get employee by ID - handle both employeeId and _id
+    let employee;
+
+    // Check if employeeId is a MongoDB ObjectId
+    if (mongoose.Types.ObjectId.isValid(employeeId)) {
+      employee = await Employee.findById(employeeId);
+    }
+
+    // If not found by _id, try to find by employeeId
+    if (!employee) {
+      employee = await Employee.findOne({ employeeId });
+    }
+
     if (!employee) {
       return res.status(404).json({
         success: false,
         error: 'Employee not found'
       });
     }
-    
+
     // Check if already checked in today
     const today = new Date();
     const startOfDay = new Date(today.setHours(0, 0, 0, 0));
     const endOfDay = new Date(today.setHours(23, 59, 59, 999));
-    
+
     const existingRecord = await Attendance.findOne({
       employee: employee._id,
       date: {
@@ -266,7 +277,7 @@ export const checkIn = async (req, res) => {
         $lte: endOfDay
       }
     });
-    
+
     if (existingRecord) {
       // If already checked in but not checked out, return error
       if (existingRecord.checkIn && !existingRecord.checkOut) {
@@ -275,20 +286,20 @@ export const checkIn = async (req, res) => {
           error: 'Employee already checked in today'
         });
       }
-      
+
       // If record exists but no check-in (e.g., marked as absent), update it
       existingRecord.checkIn = new Date();
       existingRecord.status = 'present';
       existingRecord.location = location;
-      
+
       await existingRecord.save();
-      
+
       return res.json({
         success: true,
         data: existingRecord
       });
     }
-    
+
     // Create new attendance record
     const attendance = await Attendance.create({
       employee: employee._id,
@@ -298,7 +309,7 @@ export const checkIn = async (req, res) => {
       location,
       createdBy: req.user._id
     });
-    
+
     res.status(201).json({
       success: true,
       data: attendance
@@ -317,22 +328,32 @@ export const checkIn = async (req, res) => {
 export const checkOut = async (req, res) => {
   try {
     const { employeeId, location } = req.body;
-    
-    // Get employee by ID
-    const employee = await Employee.findOne({ employeeId });
-    
+
+    // Get employee by ID - handle both employeeId and _id
+    let employee;
+
+    // Check if employeeId is a MongoDB ObjectId
+    if (mongoose.Types.ObjectId.isValid(employeeId)) {
+      employee = await Employee.findById(employeeId);
+    }
+
+    // If not found by _id, try to find by employeeId
+    if (!employee) {
+      employee = await Employee.findOne({ employeeId });
+    }
+
     if (!employee) {
       return res.status(404).json({
         success: false,
         error: 'Employee not found'
       });
     }
-    
+
     // Find today's attendance record
     const today = new Date();
     const startOfDay = new Date(today.setHours(0, 0, 0, 0));
     const endOfDay = new Date(today.setHours(23, 59, 59, 999));
-    
+
     const attendanceRecord = await Attendance.findOne({
       employee: employee._id,
       date: {
@@ -340,14 +361,14 @@ export const checkOut = async (req, res) => {
         $lte: endOfDay
       }
     });
-    
+
     if (!attendanceRecord) {
       return res.status(404).json({
         success: false,
         error: 'No check-in record found for today'
       });
     }
-    
+
     // If already checked out, return error
     if (attendanceRecord.checkOut) {
       return res.status(400).json({
@@ -355,13 +376,13 @@ export const checkOut = async (req, res) => {
         error: 'Employee already checked out today'
       });
     }
-    
+
     // Update check-out time
     attendanceRecord.checkOut = new Date();
     attendanceRecord.location = location || attendanceRecord.location;
-    
+
     await attendanceRecord.save();
-    
+
     res.json({
       success: true,
       data: attendanceRecord
@@ -382,7 +403,7 @@ export const getAttendanceStats = async (req, res) => {
     // Get date range
     const { startDate, endDate } = req.query;
     let dateQuery = {};
-    
+
     if (startDate && endDate) {
       dateQuery = {
         date: {
@@ -395,7 +416,7 @@ export const getAttendanceStats = async (req, res) => {
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-      
+
       dateQuery = {
         date: {
           $gte: startOfMonth,
@@ -403,7 +424,7 @@ export const getAttendanceStats = async (req, res) => {
         }
       };
     }
-    
+
     // Get attendance counts by status
     const statusCounts = await Attendance.aggregate([
       { $match: dateQuery },
@@ -413,7 +434,7 @@ export const getAttendanceStats = async (req, res) => {
         }
       }
     ]);
-    
+
     // Format status counts
     const formattedStatusCounts = {
       present: 0,
@@ -422,11 +443,11 @@ export const getAttendanceStats = async (req, res) => {
       leave: 0,
       holiday: 0
     };
-    
+
     statusCounts.forEach(item => {
       formattedStatusCounts[item._id] = item.count;
     });
-    
+
     // Get department attendance
     const departmentAttendance = await Attendance.aggregate([
       { $match: { ...dateQuery, status: 'present' } },
@@ -454,7 +475,7 @@ export const getAttendanceStats = async (req, res) => {
       },
       { $sort: { count: -1 } }
     ]);
-    
+
     // Get average work hours
     const workHoursData = await Attendance.aggregate([
       { $match: { ...dateQuery, workHours: { $gt: 0 } } },
@@ -465,13 +486,13 @@ export const getAttendanceStats = async (req, res) => {
         }
       }
     ]);
-    
-    const averageWorkHours = workHoursData.length > 0 ? 
+
+    const averageWorkHours = workHoursData.length > 0 ?
       Math.round(workHoursData[0].averageHours * 100) / 100 : 0;
-    
-    const totalWorkHours = workHoursData.length > 0 ? 
+
+    const totalWorkHours = workHoursData.length > 0 ?
       Math.round(workHoursData[0].totalHours * 100) / 100 : 0;
-    
+
     res.json({
       success: true,
       data: {
