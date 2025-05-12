@@ -19,7 +19,6 @@ import AdminProfile from './pages/admin/AdminProfile';
 import AdminAttendance from './pages/admin/AdminAttendance';
 import Employees from './pages/Employees';
 import Departments from './pages/Departments';
-import Performance from './pages/Performance';
 import Reports from './pages/Reports';
 
 
@@ -27,8 +26,9 @@ import Reports from './pages/Reports';
 import EmployeeDashboard from './pages/employee/EmployeeDashboard';
 import EmployeeProfile from './pages/employee/EmployeeProfile';
 import EmployeeAttendance from './pages/employee/EmployeeAttendance';
-import EmployeePerformance from './pages/employee/EmployeePerformance';
 import EmployeeTeam from './pages/employee/EmployeeTeam';
+import AddEmployee from './pages/AddEmployee';
+import EmployeeDetails from './pages/EmployeeDetails';
 
 // Components
 import ProtectedRoute from './components/common/ProtectedRoute';
@@ -85,12 +85,17 @@ function App() {
           <Route path="/employee/dashboard" element={<EmployeeDashboard />} />
           <Route path="/employee/profile" element={<EmployeeProfile />} />
           <Route path="/employee/attendance" element={<EmployeeAttendance />} />
-          <Route path="/employee/performance" element={<EmployeePerformance />} />
           <Route path="/employee/team" element={<EmployeeTeam />} />
         </Route>
 
         {/* Redirect old dashboard path to role-specific dashboard */}
         <Route path="/dashboard" element={<ProtectedRoute><DashboardRedirect /></ProtectedRoute>} />
+
+        {/* Protected Routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/employees/add" element={<AddEmployee />} />
+          <Route path="/employees/:id" element={<EmployeeDetails />} />
+        </Route>
 
         {/* Fallback route */}
         <Route path="*" element={<LandingPage />} />

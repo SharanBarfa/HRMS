@@ -48,16 +48,22 @@ const DepartmentManagement = () => {
       setIsLoading(true);
       setError('');
 
+      // Get token from localStorage
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Authentication token not found. Please log in again.');
+      }
+
       if (editingDepartment) {
         // Update existing department
-        const response = await updateDepartment(editingDepartment._id, formData, user.token);
+        const response = await updateDepartment(editingDepartment._id, formData, token);
         if (response.success) {
           toast.success('Department updated successfully');
           setEditingDepartment(null);
         }
       } else {
         // Create new department
-        const response = await createDepartment(formData, user.token);
+        const response = await createDepartment(formData, token);
         if (response.success) {
           toast.success('Department created successfully');
         }
@@ -67,8 +73,16 @@ const DepartmentManagement = () => {
       setFormData({ name: '', description: '' });
       fetchDepartments();
     } catch (error) {
-      setError(error.error || 'Failed to save department');
-      toast.error(error.error || 'Failed to save department');
+      const errorMessage = error.error || error.message || 'Failed to save department';
+      setError(errorMessage);
+      toast.error(errorMessage);
+      
+      // If unauthorized, redirect to login
+      if (errorMessage.includes('unauthorized') || errorMessage.includes('token')) {
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 2000);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -83,17 +97,32 @@ const DepartmentManagement = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this department?')) {
+    if (window.confirm('Are you sure you want to delete this department? This action cannot be undone.')) {
       try {
         setIsLoading(true);
-        const response = await deleteDepartment(id, user.token);
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('Authentication token not found. Please log in again.');
+        }
+        
+        const response = await deleteDepartment(id, token);
         if (response.success) {
           toast.success('Department deleted successfully');
-          fetchDepartments();
+          setDepartments(prevDepartments => prevDepartments.filter(dept => dept._id !== id));
+        } else {
+          throw new Error(response.error || 'Failed to delete department');
         }
       } catch (error) {
-        setError(error.error || 'Failed to delete department');
-        toast.error(error.error || 'Failed to delete department');
+        const errorMessage = error.error || error.message || 'Failed to delete department';
+        setError(errorMessage);
+        toast.error(errorMessage);
+        
+        // If unauthorized, redirect to login
+        if (errorMessage.includes('unauthorized') || errorMessage.includes('token')) {
+          setTimeout(() => {
+            window.location.href = '/login';
+          }, 2000);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -200,9 +229,10 @@ const DepartmentManagement = () => {
                     </button>
                     <button
                       onClick={() => handleDelete(dept._id)}
-                      className="px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                      disabled={isLoading}
+                      className="px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
                     >
-                      Delete
+                      {isLoading ? 'Deleting...' : 'Delete'}
                     </button>
                   </div>
                 </div>

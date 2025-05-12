@@ -1,38 +1,113 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { getEmployees } from '../../services/employeeService';
+import { getDepartments } from '../../services/departmentService';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [employeeStats, setEmployeeStats] = useState({
+    total: 0,
+    active: 0,
+    onLeave: 0,
+    newHires: 0
+  });
+  const [departmentData, setDepartmentData] = useState([]);
+  const [recentActivities, setRecentActivities] = useState([]);
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
 
-  const employeeStats = {
-    total: 245,
-    active: 232,
-    onLeave: 13,
-    newHires: 8
-  };
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
 
-  const departmentData = [
-    { name: 'Engineering', count: 78, percentage: 32 },
-    { name: 'Marketing', count: 45, percentage: 18 },
-    { name: 'Sales', count: 62, percentage: 25 },
-    { name: 'HR', count: 15, percentage: 6 },
-    { name: 'Finance', count: 25, percentage: 10 },
-    { name: 'Operations', count: 20, percentage: 9 }
-  ];
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-  const recentActivities = [
+      // Fetch employees
+      const employeesResponse = await getEmployees();
+      if (!employeesResponse.success) {
+        throw new Error(employeesResponse.error || 'Failed to fetch employees');
+      }
+
+      // Calculate employee stats
+      const employees = employeesResponse.data || [];
+      const now = new Date();
+      const thirtyDaysAgo = new Date(now.setDate(now.getDate() - 30));
+
+      const stats = {
+        total: employees.length,
+        active: employees.filter(emp => emp.status === 'active').length,
+        onLeave: employees.filter(emp => emp.status === 'leave').length,
+        newHires: employees.filter(emp => new Date(emp.joinDate) >= thirtyDaysAgo).length
+      };
+      setEmployeeStats(stats);
+
+      // Fetch departments
+      const departmentsResponse = await getDepartments();
+      if (!departmentsResponse.success) {
+        throw new Error(departmentsResponse.error || 'Failed to fetch departments');
+      }
+
+      // Calculate department distribution
+      const departments = departmentsResponse.data || [];
+      const deptData = departments.map(dept => {
+        const deptEmployees = employees.filter(emp => emp.department?._id === dept._id);
+        return {
+          name: dept.name,
+          count: deptEmployees.length,
+          percentage: Math.round((deptEmployees.length / employees.length) * 100)
+        };
+      });
+      setDepartmentData(deptData);
+
+      // TODO: Fetch recent activities and upcoming events from API
+      // For now, using mock data
+      setRecentActivities([
     { id: 1, user: 'Sarah Johnson', action: 'updated their profile', time: '2 hours ago' },
     { id: 2, user: 'Mark Wilson', action: 'requested time off', time: '3 hours ago' },
     { id: 3, user: 'Emma Thompson', action: 'completed training', time: '5 hours ago' },
     { id: 4, user: 'John Davis', action: 'submitted performance review', time: '1 day ago' },
     { id: 5, user: 'Linda Garcia', action: 'marked attendance', time: '1 day ago' }
-  ];
+      ]);
 
-  const upcomingEvents = [
+      setUpcomingEvents([
     { id: 1, title: 'Team Building Workshop', date: 'Apr 15, 2025', participants: 45 },
     { id: 2, title: 'Quarterly Performance Review', date: 'Apr 20, 2025', participants: 232 },
     { id: 3, title: 'New Hire Orientation', date: 'Apr 25, 2025', participants: 8 }
-  ];
+      ]);
+
+    } catch (err) {
+      console.error('Error fetching dashboard data:', err);
+      setError(err.message || 'Failed to fetch dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <div className="text-red-500 mb-4">{error}</div>
+        <button
+          onClick={fetchDashboardData}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="py-6">
@@ -110,6 +185,9 @@ const AdminDashboard = () => {
                     <dt className="text-sm font-medium text-gray-500 truncate">On Leave</dt>
                     <dd className="flex items-baseline">
                       <div className="text-2xl font-semibold text-gray-900">{employeeStats.onLeave}</div>
+                      <div className="ml-2 text-sm font-medium text-yellow-600">
+                        {Math.round((employeeStats.onLeave / employeeStats.total) * 100)}%
+                      </div>
                     </dd>
                   </dl>
                 </div>
@@ -130,6 +208,9 @@ const AdminDashboard = () => {
                     <dt className="text-sm font-medium text-gray-500 truncate">New Hires (30 days)</dt>
                     <dd className="flex items-baseline">
                       <div className="text-2xl font-semibold text-gray-900">{employeeStats.newHires}</div>
+                      <div className="ml-2 text-sm font-medium text-blue-600">
+                        {Math.round((employeeStats.newHires / employeeStats.total) * 100)}%
+                      </div>
                     </dd>
                   </dl>
                 </div>

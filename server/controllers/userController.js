@@ -186,8 +186,7 @@ export const loginUser = async (req, res) => {
     if (user.role === 'employee') {
       const employee = await Employee.findOne({ user: user._id })
         .populate('department', 'name')
-        .populate('attendance')
-        .populate('performance');
+        .populate('attendance');
 
       if (employee) {
         employeeData = {
@@ -206,7 +205,6 @@ export const loginUser = async (req, res) => {
           emergencyContact: employee.emergencyContact,
           profileImage: employee.profileImage,
           attendance: employee.attendance,
-          performance: employee.performance
         };
       }
     }

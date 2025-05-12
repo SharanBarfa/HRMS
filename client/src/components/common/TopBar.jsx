@@ -57,14 +57,12 @@ const TopBar = () => {
         { name: 'Employees', path: '/admin/employees' },
         { name: 'Departments', path: '/admin/departments' },
         { name: 'Attendance', path: '/admin/attendance' },
-        { name: 'Performance', path: '/admin/performance' },
         { name: 'Reports', path: '/admin/reports' }
       ]
     : [
         { name: 'Dashboard', path: '/employee/dashboard' },
         { name: 'My Profile', path: '/employee/profile' },
         { name: 'My Attendance', path: '/employee/attendance' },
-        { name: 'My Performance', path: '/employee/performance' },
         { name: 'My Team', path: '/employee/team' }
       ];
 

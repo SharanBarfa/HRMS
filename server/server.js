@@ -9,7 +9,6 @@ import userRoutes from './routes/userRoutes.js';
 import employeeRoutes from './routes/employeeRoutes.js';
 import departmentRoutes from './routes/departmentRoutes.js';
 import attendanceRoutes from './routes/attendanceRoutes.js';
-import performanceRoutes from './routes/performanceRoutes.js';
 import reportRoutes from './routes/reportRoutes.js';
 import teamRoutes from './routes/teamRoutes.js';
 
@@ -50,7 +49,6 @@ app.use('/api/users', userRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/departments', departmentRoutes);
 app.use('/api/attendance', attendanceRoutes);
-app.use('/api/performance', performanceRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/teams', teamRoutes);
 

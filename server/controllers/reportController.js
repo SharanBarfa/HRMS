@@ -2,7 +2,6 @@ import Report from '../models/reportModel.js';
 import Employee from '../models/employeeModel.js';
 import Department from '../models/departmentModel.js';
 import Attendance from '../models/attendanceModel.js';
-import Performance from '../models/performanceModel.js';
 
 // @desc    Get all reports
 // @route   GET /api/reports

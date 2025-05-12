@@ -63,7 +63,6 @@ const Reports = () => {
   const reportTypes = [
     { id: 'attendance', name: 'Attendance Report', icon: Clock },
     { id: 'employee', name: 'Employee Report', icon: Users },
-    { id: 'performance', name: 'Performance Report', icon: BarChart },
     { id: 'payroll', name: 'Payroll Report', icon: DollarSign },
   ];
 

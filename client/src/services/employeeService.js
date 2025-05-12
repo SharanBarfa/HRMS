@@ -1,5 +1,6 @@
 import api from './api';
 import mockAPI from './mockBackend';
+import axios from 'axios';
 
 // Get all employees
 export const getEmployees = async (params = {}) => {
@@ -24,7 +25,21 @@ export const getEmployeeById = async (id) => {
 // Create employee
 export const createEmployee = async (employeeData) => {
   try {
-    const response = await api.post('/employees', employeeData);
+    // First get the current user's profile to get the user ID
+    const userResponse = await api.get('/users/profile');
+    const userData = userResponse.data.data || userResponse.data;
+    
+    // Extract password from employee data
+    const { password, ...employeeDataWithoutPassword } = employeeData;
+    
+    // Add the user ID to the employee data
+    const employeeDataWithUser = {
+      ...employeeDataWithoutPassword,
+      user: userData._id,
+      password // Add password separately
+    };
+
+    const response = await api.post('/employees', employeeDataWithUser);
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : { success: false, error: 'Network error' };

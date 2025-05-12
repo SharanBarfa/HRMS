@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getTodayAttendanceStatus, checkIn, checkOut } from '../../services/attendanceService';
 import { getCurrentUserTeams } from '../../services/teamService';
-import { getCurrentUserPerformance } from '../../services/performanceService';
 import { getCurrentEmployee } from '../../services/employeeService';
 
 const EmployeeDashboard = () => {

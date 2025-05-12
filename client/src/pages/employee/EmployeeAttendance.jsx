@@ -246,6 +246,39 @@ const EmployeeAttendance = () => {
     }
   };
 
+  const getStatusText = (record) => {
+    if (!record.checkIn && !record.checkOut) {
+      return 'Absent';
+    }
+    
+    if (record.status === 'late') {
+      return 'Late (After 10 AM)';
+    }
+    
+    if (record.status === 'present') {
+      return 'Present';
+    }
+    
+    return record.status.charAt(0).toUpperCase() + record.status.slice(1);
+  };
+
+  const getStatusColor = (status) => {
+    switch (status.toLowerCase()) {
+      case 'present':
+        return 'success';
+      case 'late':
+        return 'warning';
+      case 'absent':
+        return 'danger';
+      case 'leave':
+        return 'info';
+      case 'holiday':
+        return 'primary';
+      default:
+        return 'secondary';
+    }
+  };
+
   return (
     <div className="py-6">
       <div className="px-4 mx-auto max-w-7xl sm:px-6 md:px-8">
@@ -493,13 +526,8 @@ const EmployeeAttendance = () => {
                           {record.checkOut}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            record.status === 'Present' ? 'bg-green-100 text-green-800' :
-                            record.status === 'Absent' ? 'bg-red-100 text-red-800' :
-                            record.status === 'Late' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
-                            {record.status}
+                          <span className={`badge bg-${getStatusColor(record.status)}`}>
+                            {getStatusText(record)}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

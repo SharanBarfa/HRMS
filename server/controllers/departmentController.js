@@ -185,13 +185,22 @@ export const deleteDepartment = async (req, res) => {
       });
     }
 
-    // Instead of deleting, set status to inactive
-    department.status = 'inactive';
-    await department.save();
+    // Check if department has any employees
+    const employeeCount = await Employee.countDocuments({ department: department._id });
+    if (employeeCount > 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Cannot delete department with active employees. Please reassign or remove employees first.'
+      });
+    }
+
+    // Delete the department
+    await department.deleteOne();
 
     res.json({
       success: true,
-      data: {}
+      data: {},
+      message: 'Department deleted successfully'
     });
   } catch (error) {
     res.status(500).json({

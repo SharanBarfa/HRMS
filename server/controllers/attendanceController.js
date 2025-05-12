@@ -288,8 +288,11 @@ export const checkIn = async (req, res) => {
       }
 
       // If record exists but no check-in (e.g., marked as absent), update it
-      existingRecord.checkIn = new Date();
-      existingRecord.status = 'present';
+      const checkInTime = new Date();
+      const isLate = checkInTime.getHours() >= 10;
+      
+      existingRecord.checkIn = checkInTime;
+      existingRecord.status = isLate ? 'late' : 'present';
       existingRecord.location = location;
 
       await existingRecord.save();
@@ -301,16 +304,19 @@ export const checkIn = async (req, res) => {
     }
 
     // Create new attendance record
+    const checkInTime = new Date();
+    const isLate = checkInTime.getHours() >= 10;
+
     const attendance = await Attendance.create({
       employee: employee._id,
       date: new Date(),
-      checkIn: new Date(),
-      status: 'present',
+      checkIn: checkInTime,
+      status: isLate ? 'late' : 'present',
       location,
       createdBy: req.user._id
     });
 
-    res.status(201).json({
+    res.json({
       success: true,
       data: attendance
     });
