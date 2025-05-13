@@ -73,7 +73,9 @@ const AddEmployee = () => {
       const response = await createEmployee(formData);
       if (response.success) {
         toast.success('Employee added successfully');
-        navigate('/employees');
+        setTimeout(() => {
+          navigate('/admin/employees');
+        }, 1000);
       } else {
         toast.error(response.error || 'Failed to add employee');
       }
@@ -442,7 +444,7 @@ const AddEmployee = () => {
               <div className="flex justify-end">
                 <button
                   type="button"
-                  onClick={() => navigate('/employees')}
+                  onClick={() => navigate('/admin/employees')}
                   className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 >
                   Cancel

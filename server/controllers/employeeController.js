@@ -1,6 +1,7 @@
 import Employee from '../models/employeeModel.js';
 import User from '../models/userModel.js';
 import Department from '../models/departmentModel.js';
+import Activity from '../models/activityModel.js';
 
 // @desc    Get all employees
 // @route   GET /api/employees
@@ -110,7 +111,7 @@ export const createEmployee = async (req, res) => {
       salary,
       address,
       emergencyContact,
-      userId
+      password
     } = req.body;
     
     // Check if department exists
@@ -121,12 +122,47 @@ export const createEmployee = async (req, res) => {
         error: 'Department not found'
       });
     }
+
+    // Check if user with this email already exists
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      return res.status(400).json({
+        success: false,
+        error: 'User with this email already exists'
+      });
+    }
     
     // Generate employee ID
     const employeeCount = await Employee.countDocuments();
     const employeeId = `EMP${(employeeCount + 1).toString().padStart(4, '0')}`;
+
+    // Create user with all required fields
+    const userData = {
+      name: `${firstName} ${lastName}`,
+      email,
+      password: password || 'Welcome@123',
+      role: 'employee',
+      department,
+      position,
+      phone,
+      joinDate,
+      address: {
+        street: address?.street || '',
+        city: address?.city || '',
+        state: address?.state || '',
+        zipCode: address?.zipCode || '',
+        country: address?.country || ''
+      },
+      emergencyContact: {
+        name: emergencyContact?.name || '',
+        relationship: emergencyContact?.relationship || '',
+        phone: emergencyContact?.phone || ''
+      }
+    };
+
+    const user = await User.create(userData);
     
-    // Create employee
+    // Create employee record
     const employee = await Employee.create({
       employeeId,
       firstName,
@@ -140,20 +176,41 @@ export const createEmployee = async (req, res) => {
       salary,
       address,
       emergencyContact,
-      user: userId
+      user: user._id // Link to the created user account
     });
-    
-    // If userId is provided, update the user with department and position
-    if (userId) {
-      await User.findByIdAndUpdate(userId, {
-        department,
+
+    // Create activity log for new employee
+    await Activity.create({
+      type: 'new_employee',
+      user: req.user.id,
+      subject: 'New Employee Added',
+      description: `New employee "${firstName} ${lastName}" (${employeeId}) has been added to ${departmentExists.name}`,
+      relatedTo: {
+        model: 'Employee',
+        id: employee._id
+      },
+      metadata: {
+        employeeName: `${firstName} ${lastName}`,
+        employeeId,
+        department: departmentExists.name,
         position
-      });
-    }
+      }
+    });
     
     res.status(201).json({
       success: true,
-      data: employee
+      data: {
+        ...employee.toObject(),
+        user: {
+          _id: user._id,
+          email: user.email,
+          role: user.role,
+          phone: user.phone,
+          address: user.address,
+          emergencyContact: user.emergencyContact
+        }
+      },
+      message: 'Employee created successfully with user account.'
     });
   } catch (error) {
     res.status(500).json({
@@ -209,7 +266,9 @@ export const updateEmployee = async (req, res) => {
 // @access  Private/Admin
 export const deleteEmployee = async (req, res) => {
   try {
-    const employee = await Employee.findById(req.params.id);
+    const employee = await Employee.findById(req.params.id)
+      .populate('user', 'name email')
+      .populate('department', 'name');
     
     if (!employee) {
       return res.status(404).json({
@@ -217,12 +276,44 @@ export const deleteEmployee = async (req, res) => {
         error: 'Employee not found'
       });
     }
-    
+
+    // Store employee info for activity log
+    const employeeInfo = {
+      name: `${employee.firstName} ${employee.lastName}`,
+      employeeId: employee.employeeId,
+      department: employee.department?.name
+    };
+
+    // Delete the associated user account if it exists
+    if (employee.user) {
+      await User.findByIdAndDelete(employee.user._id);
+    }
+
+    // Create activity log for employee deletion
+    await Activity.create({
+      type: 'employee_update',
+      user: req.user.id,
+      subject: 'Employee Deleted',
+      description: `Employee "${employeeInfo.name}" (${employeeInfo.employeeId}) has been deleted`,
+      relatedTo: {
+        model: 'Employee',
+        id: employee._id
+      },
+      metadata: {
+        employeeName: employeeInfo.name,
+        employeeId: employeeInfo.employeeId,
+        department: employeeInfo.department,
+        action: 'delete'
+      }
+    });
+
+    // Delete the employee
     await employee.deleteOne();
-    
+
     res.json({
       success: true,
-      data: {}
+      data: {},
+      message: 'Employee and associated user account deleted successfully'
     });
   } catch (error) {
     res.status(500).json({

@@ -1,5 +1,6 @@
 import Department from '../models/departmentModel.js';
 import Employee from '../models/employeeModel.js';
+import Activity from '../models/activityModel.js';
 
 // @desc    Get all departments
 // @route   GET /api/departments
@@ -114,6 +115,22 @@ export const createDepartment = async (req, res) => {
       description
     });
 
+    // Create activity for department creation
+    await Activity.create({
+      type: 'department_update',
+      user: req.user.id,
+      subject: 'New Department Created',
+      description: `Department "${name}" has been created`,
+      relatedTo: {
+        model: 'Department',
+        id: department._id
+      },
+      metadata: {
+        departmentName: name,
+        action: 'create'
+      }
+    });
+
     res.status(201).json({
       success: true,
       data: department
@@ -153,11 +170,29 @@ export const updateDepartment = async (req, res) => {
       }
     }
 
+    const oldName = department.name;
     department.name = name || department.name;
     department.description = description || department.description;
     department.status = status || department.status;
 
     const updatedDepartment = await department.save();
+
+    // Create activity for department update
+    await Activity.create({
+      type: 'department_update',
+      user: req.user.id,
+      subject: 'Department Updated',
+      description: `Department "${oldName}" has been updated`,
+      relatedTo: {
+        model: 'Department',
+        id: department._id
+      },
+      metadata: {
+        oldName,
+        newName: department.name,
+        action: 'update'
+      }
+    });
 
     res.json({
       success: true,
@@ -193,6 +228,22 @@ export const deleteDepartment = async (req, res) => {
         error: 'Cannot delete department with active employees. Please reassign or remove employees first.'
       });
     }
+
+    // Create activity for department deletion before deleting
+    await Activity.create({
+      type: 'department_update',
+      user: req.user.id,
+      subject: 'Department Deleted',
+      description: `Department "${department.name}" has been deleted`,
+      relatedTo: {
+        model: 'Department',
+        id: department._id
+      },
+      metadata: {
+        departmentName: department.name,
+        action: 'delete'
+      }
+    });
 
     // Delete the department
     await department.deleteOne();

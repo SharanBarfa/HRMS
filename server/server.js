@@ -11,6 +11,7 @@ import departmentRoutes from './routes/departmentRoutes.js';
 import attendanceRoutes from './routes/attendanceRoutes.js';
 import reportRoutes from './routes/reportRoutes.js';
 import teamRoutes from './routes/teamRoutes.js';
+import activityRoutes from './routes/activityRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -51,6 +52,7 @@ app.use('/api/departments', departmentRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/teams', teamRoutes);
+app.use('/api/activities', activityRoutes);
 
 // Base route
 app.get('/', (req, res) => {

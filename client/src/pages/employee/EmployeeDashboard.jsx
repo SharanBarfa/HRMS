@@ -10,7 +10,6 @@ const EmployeeDashboard = () => {
   const [error, setError] = useState(null);
   const [todayAttendance, setTodayAttendance] = useState(null);
   const [teams, setTeams] = useState([]);
-  const [performanceReviews, setPerformanceReviews] = useState([]);
   const [checkingIn, setCheckingIn] = useState(false);
   const [checkingOut, setCheckingOut] = useState(false);
   const [employee, setEmployee] = useState(null);
@@ -55,25 +54,6 @@ const EmployeeDashboard = () => {
     fetchTeams();
   }, []);
 
-  // Fetch performance reviews
-  useEffect(() => {
-    const fetchPerformance = async () => {
-      try {
-        setLoading(true);
-        console.log('Fetching performance in component');
-        const response = await getCurrentUserPerformance();
-        console.log('Performance response in component:', response);
-        setPerformanceReviews(response.data || []);
-      } catch (err) {
-        console.error('Error fetching performance reviews in component:', err);
-        // Don't set error for performance as it's not critical
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPerformance();
-  }, []);
 
   // Fetch employee information
   useEffect(() => {
@@ -391,7 +371,7 @@ const EmployeeDashboard = () => {
           </div>
 
           {/* Performance Reviews */}
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          {/* <div className="bg-white overflow-hidden shadow rounded-lg">
             <div className="p-5">
               <h3 className="text-lg font-medium text-gray-900">Performance Reviews</h3>
               <div className="mt-4 flow-root">
@@ -442,7 +422,7 @@ const EmployeeDashboard = () => {
                 </a>
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* Tasks and Upcoming Leaves */}

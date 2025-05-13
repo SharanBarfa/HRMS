@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getEmployees } from '../../services/employeeService';
 import { getDepartments } from '../../services/departmentService';
+import { getRecentActivities } from '../../services/activityService';
+import RecentActivities from '../../components/dashboard/RecentActivities';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -63,15 +65,12 @@ const AdminDashboard = () => {
       });
       setDepartmentData(deptData);
 
-      // TODO: Fetch recent activities and upcoming events from API
-      // For now, using mock data
-      setRecentActivities([
-    { id: 1, user: 'Sarah Johnson', action: 'updated their profile', time: '2 hours ago' },
-    { id: 2, user: 'Mark Wilson', action: 'requested time off', time: '3 hours ago' },
-    { id: 3, user: 'Emma Thompson', action: 'completed training', time: '5 hours ago' },
-    { id: 4, user: 'John Davis', action: 'submitted performance review', time: '1 day ago' },
-    { id: 5, user: 'Linda Garcia', action: 'marked attendance', time: '1 day ago' }
-      ]);
+      // Fetch recent activities
+      const activitiesResponse = await getRecentActivities({ limit: 5 });
+      if (!activitiesResponse.success) {
+        throw new Error(activitiesResponse.error || 'Failed to fetch activities');
+      }
+      setRecentActivities(activitiesResponse.data || []);
 
       setUpcomingEvents([
     { id: 1, title: 'Team Building Workshop', date: 'Apr 15, 2025', participants: 45 },
@@ -252,34 +251,7 @@ const AdminDashboard = () => {
           </div>
 
           {/* Activity Feed */}
-          <div className="overflow-hidden bg-white rounded-lg shadow">
-            <div className="px-6 py-5 border-b border-gray-200">
-              <h3 className="text-lg font-medium leading-6 text-gray-900">Recent Activity</h3>
-            </div>
-            <div className="px-6 py-5">
-              <ul className="divide-y divide-gray-200">
-                {recentActivities.map((activity) => (
-                  <li key={activity.id} className="py-4">
-                    <div className="flex space-x-3">
-                      <div className="flex-shrink-0">
-                        <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                          <span className="text-sm font-medium text-indigo-800">
-                            {activity.user.charAt(0)}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm text-gray-900">
-                          <span className="font-medium">{activity.user}</span> {activity.action}
-                        </p>
-                        <p className="text-sm text-gray-500">{activity.time}</p>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
+          <RecentActivities activities={recentActivities} />
         </div>
 
         {/* Upcoming Events */}
