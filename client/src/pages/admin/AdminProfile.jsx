@@ -163,62 +163,8 @@ const AdminProfile = () => {
           </div>
         </div>
         
-        {/* Security section */}
-        <div className="py-4">
-          <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-            <div className="px-4 py-5 sm:px-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">Security Settings</h3>
-              <p className="mt-1 max-w-2xl text-sm text-gray-500">Manage your account security.</p>
-            </div>
-            <div className="border-t border-gray-200 px-4 py-5 sm:p-6">
-              <div className="space-y-6">
-                <div>
-                  <h4 className="text-sm font-medium text-gray-900">Change Password</h4>
-                  <div className="mt-2">
-                    <button
-                      type="button"
-                      className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    >
-                      Change Password
-                    </button>
-                  </div>
-                </div>
-                
-                <div>
-                  <h4 className="text-sm font-medium text-gray-900">Two-Factor Authentication</h4>
-                  <div className="mt-2 flex items-center">
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                      Not Enabled
-                    </span>
-                    <button
-                      type="button"
-                      className="ml-4 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    >
-                      Enable 2FA
-                    </button>
-                  </div>
-                </div>
-                
-                <div>
-                  <h4 className="text-sm font-medium text-gray-900">Active Sessions</h4>
-                  <div className="mt-2">
-                    <div className="bg-gray-50 px-4 py-3 rounded-md">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">Current Session</p>
-                          <p className="text-xs text-gray-500">Windows 10 • Chrome • New York, USA</p>
-                        </div>
-                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                          Active Now
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        
+        
       </div>
     </div>
   );

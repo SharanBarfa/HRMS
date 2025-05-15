@@ -19,8 +19,8 @@ import AdminProfile from './pages/admin/AdminProfile';
 import AdminAttendance from './pages/admin/AdminAttendance';
 import Employees from './pages/Employees';
 import Departments from './pages/Departments';
-import Reports from './pages/Reports';
-
+import AdminProject from './pages/admin/AdminProject';
+import AdminTeams from './pages/admin/AdminTeams';
 
 // Employee Pages
 import EmployeeDashboard from './pages/employee/EmployeeDashboard';
@@ -29,6 +29,7 @@ import EmployeeAttendance from './pages/employee/EmployeeAttendance';
 import EmployeeTeam from './pages/employee/EmployeeTeam';
 import AddEmployee from './pages/AddEmployee';
 import EmployeeDetails from './pages/EmployeeDetails';
+import EmployeeProjects from './pages/employee/EmployeeProjects';
 
 // Components
 import ProtectedRoute from './components/common/ProtectedRoute';
@@ -74,10 +75,11 @@ function App() {
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/profile" element={<AdminProfile />} />
           <Route path="/admin/employees" element={<Employees />} />
+          <Route path="/admin/teams" element={<AdminTeams />} />
           <Route path="/admin/departments" element={<Departments />} />
           <Route path="/admin/attendance" element={<AdminAttendance />} />
           <Route path="/admin/performance" element={<Performance />} />
-          <Route path="/admin/reports" element={<Reports />} />
+          <Route path="/admin/project" element={<AdminProject />} />
         </Route>
 
         {/* Employee routes */}
@@ -86,6 +88,7 @@ function App() {
           <Route path="/employee/profile" element={<EmployeeProfile />} />
           <Route path="/employee/attendance" element={<EmployeeAttendance />} />
           <Route path="/employee/team" element={<EmployeeTeam />} />
+          <Route path="/employee/projects" element={<EmployeeProjects />} />
         </Route>
 
         {/* Redirect old dashboard path to role-specific dashboard */}

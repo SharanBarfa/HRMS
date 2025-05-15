@@ -151,8 +151,6 @@ const EmployeeDashboard = () => {
     { id: 3, title: 'Office Renovation', content: 'Office renovations will begin next week. Please prepare for temporary relocation.', date: 'Apr 1, 2025' }
   ];
 
-
-
   return (
     <div className="py-6">
       <div className="px-4 mx-auto max-w-7xl sm:px-6 md:px-8">
@@ -320,7 +318,6 @@ const EmployeeDashboard = () => {
       </div>
 
       <div className="px-4 mx-auto max-w-7xl sm:px-6 md:px-8">
-
         {/* Team and Performance */}
         <div className="grid grid-cols-1 gap-5 mt-6 lg:grid-cols-2">
           {/* My Teams */}
@@ -370,59 +367,8 @@ const EmployeeDashboard = () => {
             </div>
           </div>
 
-          {/* Performance Reviews */}
-          {/* <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <h3 className="text-lg font-medium text-gray-900">Performance Reviews</h3>
-              <div className="mt-4 flow-root">
-                {loading ? (
-                  <p className="text-center py-4 text-gray-500">Loading performance data...</p>
-                ) : performanceReviews.length > 0 ? (
-                  <ul className="-my-5 divide-y divide-gray-200">
-                    {performanceReviews.map((review) => (
-                      <li key={review._id} className="py-4">
-                        <div className="flex items-center space-x-4">
-                          <div className="flex-shrink-0">
-                            <span className={`inline-flex items-center justify-center h-8 w-8 rounded-full ${
-                              review.rating >= 4 ? 'bg-green-500' :
-                              review.rating >= 3 ? 'bg-blue-500' :
-                              review.rating >= 2 ? 'bg-yellow-500' :
-                              'bg-red-500'
-                            }`}>
-                              <span className="text-sm font-medium leading-none text-white">{review.rating}</span>
-                            </span>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">
-                              {review.reviewType || 'Performance Review'} - {new Date(review.reviewDate).toLocaleDateString()}
-                            </p>
-                            <p className="text-sm text-gray-500 truncate">
-                              Reviewer: {review.reviewer?.name || 'System'}
-                            </p>
-                          </div>
-                          <div>
-                            <a
-                              href={`/employee/performance/${review._id}`}
-                              className="inline-flex items-center shadow-sm px-2.5 py-0.5 border border-gray-300 text-sm leading-5 font-medium rounded-full text-gray-700 bg-white hover:bg-gray-50"
-                            >
-                              View
-                            </a>
-                          </div>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-center py-4 text-gray-500">No performance reviews available yet.</p>
-                )}
-              </div>
-              <div className="mt-6">
-                <a href="/employee/performance" className="w-full flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                  View all reviews
-                </a>
-              </div>
-            </div>
-          </div> */}
+    
+         
         </div>
 
         {/* Tasks and Upcoming Leaves */}

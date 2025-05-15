@@ -48,7 +48,7 @@ const ViewEmployee = () => {
         <div className="text-center text-red-600">
           <p>Employee not found</p>
           <button
-            onClick={() => navigate('/employees')}
+            onClick={() => navigate('/admin/employees')}
             className="mt-2 px-4 py-2 text-sm text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
           >
             Back to Employees

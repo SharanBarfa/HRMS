@@ -252,7 +252,7 @@ const EmployeeAttendance = () => {
     }
     
     if (record.status === 'late') {
-      return 'Late (After 10 AM)';
+      return 'Late (After 12 AM)';
     }
     
     if (record.status === 'present') {

@@ -1,5 +1,10 @@
 import api from './api';
 import mockAPI from './mockBackend';
+import axios from 'axios';
+import { API_URL, TOKEN_KEY } from '../config';
+
+// Configure axios defaults
+axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem(TOKEN_KEY)}`;
 
 // Get all teams
 export const getTeams = async (params = {}) => {
@@ -84,46 +89,24 @@ export const getEmployeeTeams = async (employeeId) => {
   }
 };
 
+// Get team members
+export const getTeamMembers = async () => {
+  try {
+    const response = await axios.get(`${API_URL}/teams/members`);
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('Error fetching team members:', error);
+    return { success: false, error: error.response?.data?.message || 'Failed to fetch team members' };
+  }
+};
+
 // Get current user's teams
 export const getCurrentUserTeams = async () => {
   try {
-    console.log('Fetching current user teams');
-
-    console.log('Fetching current user profile');
-    // First get the current user's employee ID
-    const userResponse = await api.get('/users/profile');
-    console.log('User profile response:', userResponse.data);
-
-    // Handle different user data structures
-    const userData = userResponse.data.data || userResponse.data;
-    const employeeId = userData?.employee?._id;
-
-    console.log('Extracted employee ID:', employeeId);
-
-    if (!employeeId) {
-      console.warn('No employee ID found in user data');
-      // Return a message with empty data array to inform the user
-      return {
-        success: true,
-        data: [],
-        message: 'No employee record found. Please complete your profile setup to view team data.',
-        noEmployeeRecord: true
-      };
-    }
-
-    // Then get the teams for this employee
-    console.log(`Fetching teams for employee ${employeeId}`);
-    const response = await api.get(`/teams/employee/${employeeId}`);
-    console.log('Employee teams response:', response.data);
-    return response.data;
+    const response = await axios.get(`${API_URL}/teams/user`);
+    return { success: true, data: response.data };
   } catch (error) {
-    console.error('Error fetching current user teams:', error);
-    // Return error message with empty data array
-    return {
-      success: false,
-      data: [],
-      error: error.response?.data?.error || error.message || 'Failed to fetch team data',
-      message: 'Unable to load team data. Please try again later.'
-    };
+    console.error('Error fetching user teams:', error);
+    return { success: false, error: error.response?.data?.message || 'Failed to fetch user teams' };
   }
 };

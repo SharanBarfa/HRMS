@@ -3,28 +3,19 @@ import mockAPI from './mockBackend';
 import axios from 'axios';
 
 // Get all departments
-// export const getDepartments = async (params = {}) => {
-//   try {
-//     console.log('Fetching departments with params:', params);
-
-//     // Use real API
-//     const response = await api.get('/departments', { params });
-//     console.log('Departments response:', response.data);
-//     return response.data;
-//   } catch (error) {
-//     console.error('Error fetching departments:', error);
-//     return { success: false, data: [], error: 'Failed to fetch departments' };
-//   }
-// };
-
-const API_URL = 'http://localhost:5000/api';
-
 export const getDepartments = async () => {
   try {
-    const response = await axios.get(`${API_URL}/departments`);
-    return response.data;
+    const response = await api.get('/departments');
+    return {
+      success: true,
+      data: response.data.data || response.data
+    };
   } catch (error) {
-    throw error.response?.data || { error: 'Error fetching departments' };
+    console.error('Error fetching departments:', error);
+    return {
+      success: false,
+      error: error.response?.data?.error || 'Failed to fetch departments'
+    };
   }
 };
 
@@ -44,47 +35,53 @@ export const getDepartmentById = async (id) => {
 };
 
 // Create department (admin only)
-export const createDepartment = async (departmentData, token) => {
+export const createDepartment = async (departmentData) => {
   try {
-    const config = {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
+    const response = await api.post('/departments', departmentData);
+    return {
+      success: true,
+      data: response.data.data || response.data
     };
-    const response = await axios.post(`${API_URL}/departments`, departmentData, config);
-    return response.data;
   } catch (error) {
-    throw error.response?.data || { error: 'Error creating department' };
+    console.error('Error creating department:', error);
+    return {
+      success: false,
+      error: error.response?.data?.error || 'Failed to create department'
+    };
   }
 };
 
 // Update department (admin only)
-export const updateDepartment = async (id, departmentData, token) => {
+export const updateDepartment = async (id, departmentData) => {
   try {
-    const config = {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
+    const response = await api.put(`/departments/${id}`, departmentData);
+    return {
+      success: true,
+      data: response.data.data || response.data
     };
-    const response = await axios.put(`${API_URL}/departments/${id}`, departmentData, config);
-    return response.data;
   } catch (error) {
-    throw error.response?.data || { error: 'Error updating department' };
+    console.error('Error updating department:', error);
+    return {
+      success: false,
+      error: error.response?.data?.error || 'Failed to update department'
+    };
   }
 };
 
 // Delete department (admin only)
-export const deleteDepartment = async (id, token) => {
+export const deleteDepartment = async (id) => {
   try {
-    const config = {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
+    const response = await api.delete(`/departments/${id}`);
+    return {
+      success: true,
+      data: response.data.data || response.data
     };
-    const response = await axios.delete(`${API_URL}/departments/${id}`, config);
-    return response.data;
   } catch (error) {
-    throw error.response?.data || { error: 'Error deleting department' };
+    console.error('Error deleting department:', error);
+    return {
+      success: false,
+      error: error.response?.data?.error || 'Failed to delete department'
+    };
   }
 };
 

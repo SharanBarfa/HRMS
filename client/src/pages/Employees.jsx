@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getEmployees, updateEmployee, deleteEmployee } from '../services/employeeService';
+import { getDepartments } from '../services/departmentService';
 import { toast } from 'react-toastify';
+import api from '../services/api';
 
 const Employees = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [employees, setEmployees] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({
@@ -43,6 +46,7 @@ const Employees = () => {
 
   useEffect(() => {
     fetchEmployees();
+    fetchDepartments();
   }, [filterStatus, searchTerm, pagination.page]);
 
   const fetchEmployees = async () => {
@@ -68,6 +72,17 @@ const Employees = () => {
       console.error('Error fetching employees:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchDepartments = async () => {
+    try {
+      const response = await getDepartments();
+      if (response.success) {
+        setDepartments(response.data);
+      }
+    } catch (err) {
+      console.error('Error fetching departments:', err);
     }
   };
 
@@ -140,18 +155,25 @@ const Employees = () => {
   };
 
   const handleDelete = async (employeeId) => {
-    if (window.confirm('Are you sure you want to delete this employee?')) {
+    if (window.confirm('Are you sure you want to delete this employee? This will permanently delete both the employee record and their user account.')) {
       try {
         setLoading(true);
+        // First delete the employee record
         const response = await deleteEmployee(employeeId);
         if (response.success) {
-          toast.success('Employee deleted successfully');
-          fetchEmployees(); // Refresh the list
+          // Then delete the associated user account
+          const userResponse = await api.delete(`/users/${employeeId}`);
+          if (userResponse.data.success) {
+            toast.success('Employee and user account deleted successfully');
+            fetchEmployees(); // Refresh the list
+          } else {
+            toast.error(userResponse.data.error || 'Failed to delete user account');
+          }
         } else {
           toast.error(response.error || 'Failed to delete employee');
         }
       } catch (error) {
-        toast.error(error.message || 'Failed to delete employee');
+        toast.error(error.message || 'Failed to delete employee and user account');
       } finally {
         setLoading(false);
       }
@@ -198,8 +220,6 @@ const Employees = () => {
           >
             <option value="all">All</option>
             <option value="active">Active</option>
-            <option value="leave">On Leave</option>
-            <option value="terminated">Terminated</option>
           </select>
         </div>
         <div className="hidden sm:block">
@@ -223,26 +243,6 @@ const Employees = () => {
               } px-3 py-2 text-sm font-medium rounded-md`}
             >
               Active
-            </button>
-            <button
-              onClick={() => setFilterStatus('leave')}
-              className={`${
-                filterStatus === 'leave'
-                  ? 'bg-indigo-100 text-indigo-700'
-                  : 'text-gray-500 hover:text-gray-700'
-              } px-3 py-2 text-sm font-medium rounded-md`}
-            >
-              On Leave
-            </button>
-            <button
-              onClick={() => setFilterStatus('terminated')}
-              className={`${
-                filterStatus === 'terminated'
-                  ? 'bg-indigo-100 text-indigo-700'
-                  : 'text-gray-500 hover:text-gray-700'
-              } px-3 py-2 text-sm font-medium rounded-md`}
-            >
-              Terminated
             </button>
           </nav>
         </div>
@@ -317,13 +317,19 @@ const Employees = () => {
                   <h4 className="font-medium">Employment Information</h4>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Department</label>
-                    <input
-                      type="text"
+                    <select
                       name="department"
                       value={formData.department}
                       onChange={handleChange}
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    />
+                    >
+                      <option value="">Select Department</option>
+                      {departments.map((dept) => (
+                        <option key={dept._id} value={dept._id}>
+                          {dept.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Position</label>
